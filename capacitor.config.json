@@ -1,0 +1,9 @@
+{
+  "appId": "com.hamariduniya.lanchat",
+  "appName": "LAN Chat",
+  "webDir": "www",
+  "bundledWebRuntime": false,
+  "android": {
+    "allowMixedContent": true
+  }
+}

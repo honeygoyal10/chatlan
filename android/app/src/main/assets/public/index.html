@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>LAN Temp Chat</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/style.css">
+<link rel="stylesheet" href="/mobile.css">
+</head>
+<body>
+
+<!-- ===== JOIN SCREEN (auto-skips once a name is known; only shown while connecting) ===== -->
+<div id="joinScreen" class="join-screen">
+  <div class="join-card">
+    <div class="join-eyebrow">$ session --temporary --lan</div>
+    <h1 class="join-title">LAN Temp Chat</h1>
+    <p class="join-sub" id="joinSub">Aapke computer ke naam se connect ho raha hai…</p>
+    <div class="join-hint" id="joinHint"></div>
+  </div>
+</div>
+
+<!-- ===== APP SHELL ===== -->
+<div id="app" class="app hidden">
+
+  <!-- top status bar -->
+  <header class="statusbar">
+    <div class="statusbar-left">
+      <span class="dot-live"></span>
+      <span class="statusbar-cmd">session --temporary --peers:<b id="peerCount">0</b></span>
+    </div>
+    <div class="statusbar-right">
+      <button id="meBtn" class="chip" title="Apna naam badlein">🙂 <span id="meName"></span> ✏️</button>
+      <button id="broadcastBtn" class="chip chip-alert" title="Sabko broadcast bhejein">📢 Broadcast</button>
+      <button id="tttBtn" class="chip" title="Tic-Tac-Toe khelein">🎮</button>
+      <button id="themeBtn" class="chip" title="Theme switch">🌙</button>
+      <button id="menuBtn" class="chip chip-menu" title="Users">👥 <span id="peerCountMobile">0</span></button>
+    </div>
+  </header>
+
+  <div class="layout">
+
+    <!-- sidebar: nodes on network -->
+    <aside id="sidebar" class="sidebar">
+      <div class="sidebar-head">NODES ON NETWORK</div>
+      <p class="sidebar-hint">Kisi bhi naam par click karke private chat karein</p>
+      <ul id="userList" class="user-list"></ul>
+
+      <div class="sidebar-head sidebar-head-spaced">SCREEN SHARING</div>
+      <button id="shareScreenBtn" class="share-btn">🖥 Apni screen share karein</button>
+      <ul id="shareList" class="share-list"></ul>
+    </aside>
+    <div id="sidebarOverlay" class="sidebar-overlay"></div>
+
+    <!-- main chat -->
+    <main class="chat-main" id="dropZone">
+      <div id="dragOverlay" class="drag-overlay">
+        <div class="drag-overlay-inner">📎 File yahan chhodein — sabko bhej diya jayega</div>
+      </div>
+
+      <div id="messages" class="messages"></div>
+
+      <div id="typingIndicator" class="typing-indicator"></div>
+
+      <div class="composer">
+        <button id="attachBtn" class="composer-icon-btn" title="File bhejein">📎</button>
+        <input id="fileInput" type="file" hidden multiple>
+        <textarea id="messageInput" class="composer-input" placeholder="Message likhein…" rows="1"></textarea>
+        <button id="sendBtn" class="composer-send">Send</button>
+      </div>
+    </main>
+  </div>
+</div>
+
+<!-- screen share viewer modal -->
+<div id="viewerModal" class="viewer-modal hidden">
+  <div class="viewer-head">
+    <span id="viewerTitle">Screen share</span>
+    <button id="closeViewerBtn" class="chip">✕ Close</button>
+  </div>
+  <video id="viewerVideo" autoplay playsinline></video>
+</div>
+
+<!-- broadcast compose modal -->
+<div id="broadcastModal" class="broadcast-modal hidden">
+  <div class="broadcast-card">
+    <div class="broadcast-title">📢 Sabko Broadcast Karein</div>
+    <p class="broadcast-sub">Yeh message alert ke roop me sabhi connected devices par highlight hoga.</p>
+    <textarea id="broadcastInput" class="broadcast-input" rows="3" placeholder="Announcement likhein…"></textarea>
+    <div class="broadcast-actions">
+      <button id="broadcastCancelBtn" class="chip">Cancel</button>
+      <button id="broadcastSendBtn" class="chip chip-alert">Bhejein</button>
+    </div>
+  </div>
+</div>
+
+<!-- Games floating panel (right corner, small) -->
+<div id="tttPanel" class="ttt-panel hidden">
+  <div class="ttt-head">
+    <span class="ttt-head-title" id="tttHeadTitle">🎮 Games</span>
+    <div class="ttt-head-actions">
+      <button id="tttMinBtn" class="ttt-icon-btn" title="Minimize">–</button>
+      <button id="tttCloseBtn" class="ttt-icon-btn" title="Close">✕</button>
+    </div>
+  </div>
+
+  <div class="ttt-body">
+
+    <!-- games hub: pick a game -->
+    <div id="gamesHubScreen" class="ttt-screen">
+      <p class="ttt-hint">Kaunsa game khelna hai?</p>
+      <button id="hubTttBtn" class="ttt-btn ttt-btn-primary">❌⭕ Tic-Tac-Toe</button>
+      <button id="hubSnakeBtn" class="ttt-btn ttt-btn-primary">🐍 Snake</button>
+      <button id="hubMemoryBtn" class="ttt-btn ttt-btn-primary">🧠 Memory Match</button>
+    </div>
+
+    <!-- ===== TIC-TAC-TOE ===== -->
+    <!-- mode select -->
+    <div id="tttModeScreen" class="ttt-screen hidden">
+      <p class="ttt-hint">Kaise khelna hai?</p>
+      <button id="tttVsComputerBtn" class="ttt-btn ttt-btn-primary">🤖 Single (vs Computer)</button>
+      <button id="tttVsPlayerBtn" class="ttt-btn">👥 Group (kisi player ko challenge karein)</button>
+      <button id="tttModeBackBtn" class="ttt-btn ttt-btn-ghost">← Games</button>
+    </div>
+
+    <!-- pick opponent from online users -->
+    <div id="tttPickScreen" class="ttt-screen hidden">
+      <p class="ttt-hint">Challenge karne ke liye ek player chunein:</p>
+      <ul id="tttOpponentList" class="ttt-opponent-list"></ul>
+      <p id="tttNoOpponents" class="ttt-hint ttt-dim hidden">Abhi koi aur online nahi hai.</p>
+      <button id="tttPickBackBtn" class="ttt-btn ttt-btn-ghost">← Wapas</button>
+    </div>
+
+    <!-- waiting for accept -->
+    <div id="tttWaitScreen" class="ttt-screen hidden">
+      <p class="ttt-hint"><span id="tttWaitName"></span> ke accept karne ka wait ho raha hai…</p>
+      <div class="ttt-spinner"></div>
+      <button id="tttCancelWaitBtn" class="ttt-btn ttt-btn-ghost">Cancel karein</button>
+    </div>
+
+    <!-- incoming invite -->
+    <div id="tttInviteScreen" class="ttt-screen hidden">
+      <p class="ttt-hint"><b id="tttInviteName"></b> ne aapko Tic-Tac-Toe khelne ke liye challenge kiya hai!</p>
+      <div class="ttt-row">
+        <button id="tttAcceptBtn" class="ttt-btn ttt-btn-primary">✅ Accept</button>
+        <button id="tttDeclineBtn" class="ttt-btn ttt-btn-danger">❌ Decline</button>
+      </div>
+    </div>
+
+    <!-- game board -->
+    <div id="tttGameScreen" class="ttt-screen hidden">
+      <div class="ttt-status" id="tttStatus">Aapki baari…</div>
+      <div class="ttt-board" id="tttBoard">
+        <button class="ttt-cell" data-i="0"></button>
+        <button class="ttt-cell" data-i="1"></button>
+        <button class="ttt-cell" data-i="2"></button>
+        <button class="ttt-cell" data-i="3"></button>
+        <button class="ttt-cell" data-i="4"></button>
+        <button class="ttt-cell" data-i="5"></button>
+        <button class="ttt-cell" data-i="6"></button>
+        <button class="ttt-cell" data-i="7"></button>
+        <button class="ttt-cell" data-i="8"></button>
+      </div>
+      <div class="ttt-row">
+        <button id="tttRematchBtn" class="ttt-btn ttt-btn-primary hidden">🔁 Rematch</button>
+        <button id="tttLeaveBtn" class="ttt-btn ttt-btn-ghost">🚪 Chhodein</button>
+      </div>
+    </div>
+
+    <!-- ===== SNAKE ===== -->
+    <div id="snakeScreen" class="ttt-screen hidden">
+      <div class="ttt-status">Score: <b id="snakeScore">0</b> &nbsp;|&nbsp; Best: <b id="snakeBest">0</b></div>
+      <canvas id="snakeCanvas" class="snake-canvas" width="238" height="238"></canvas>
+      <div id="snakeOverMsg" class="ttt-hint hidden">💀 Game over!</div>
+      <div class="snake-pad">
+        <button class="snake-pad-btn snake-pad-up" data-dir="up">▲</button>
+        <div class="snake-pad-mid">
+          <button class="snake-pad-btn" data-dir="left">◀</button>
+          <button class="snake-pad-btn" data-dir="down">▼</button>
+          <button class="snake-pad-btn" data-dir="right">▶</button>
+        </div>
+      </div>
+      <div class="ttt-row">
+        <button id="snakeRestartBtn" class="ttt-btn ttt-btn-primary">🔁 Restart</button>
+        <button id="snakeBackBtn" class="ttt-btn ttt-btn-ghost">← Games</button>
+      </div>
+    </div>
+
+    <!-- ===== MEMORY MATCH ===== -->
+    <div id="memoryScreen" class="ttt-screen hidden">
+      <div class="ttt-status">Moves: <b id="memoryMoves">0</b> &nbsp;|&nbsp; Pairs: <b id="memoryPairs">0</b>/8</div>
+      <div class="memory-grid" id="memoryGrid"></div>
+      <div id="memoryWinMsg" class="ttt-hint hidden">🎉 Sab pairs mil gaye!</div>
+      <div class="ttt-row">
+        <button id="memoryRestartBtn" class="ttt-btn ttt-btn-primary">🔁 Restart</button>
+        <button id="memoryBackBtn" class="ttt-btn ttt-btn-ghost">← Games</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- private (1-to-1) chat panel -->
+<div id="pmPanel" class="pm-panel hidden">
+  <div class="pm-head">
+    <span class="pm-head-title"><span id="pmHeadDot" class="user-dot"></span> <span id="pmHeadName">Private chat</span></span>
+    <button id="pmCloseBtn" class="ttt-icon-btn" title="Close">✕</button>
+  </div>
+  <div id="pmMessages" class="pm-messages"></div>
+  <div id="pmTypingIndicator" class="typing-indicator"></div>
+  <div class="pm-composer">
+    <button id="pmAttachBtn" class="composer-icon-btn" title="File bhejein">📎</button>
+    <input id="pmFileInput" type="file" hidden multiple>
+    <textarea id="pmMessageInput" class="composer-input" placeholder="Private message likhein…" rows="1"></textarea>
+    <button id="pmSendBtn" class="composer-send">Send</button>
+  </div>
+</div>
+
+<!-- small badge shown when someone sends an invite while panel is closed -->
+<div id="tttBadge" class="ttt-badge hidden">🎮 1</div>
+
+<audio id="pingSound" preload="auto" src="data:audio/wav;base64,UklGRl9vT19XQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQAAAAA="></audio>
+
+<script src="/vendor/socket.io.min.js"></script>
+<script src="/vendor/lanchat-native.js"></script>
+<script src="/boot-config.js"></script>
+<script src="/app.js"></script>
+<script src="/mobile.js"></script>
+</body>
+</html>

@@ -1,0 +1,47 @@
+.lc-login-overlay{
+  position:fixed; inset:0; z-index:500; display:flex; align-items:center; justify-content:center;
+  background:var(--bg); padding:20px;
+}
+.lc-login-card{
+  width:100%; max-width:380px; background:var(--panel); border:1px solid var(--border);
+  border-radius:14px; padding:26px 22px; box-shadow:0 10px 40px rgba(0,0,0,.35);
+}
+.lc-login-eyebrow{ font-family:var(--mono); font-size:11px; color:var(--text-faint); letter-spacing:.08em; margin-bottom:10px;}
+.lc-login-title{ font-size:26px; margin:0 0 8px; color:var(--text);}
+.lc-login-sub{ color:var(--text-dim); font-size:13.5px; line-height:1.5; margin:0 0 20px;}
+
+.lc-field-label{ display:block; font-size:12px; color:var(--text-faint); margin:14px 0 6px; font-family:var(--mono);}
+.lc-input{
+  width:100%; box-sizing:border-box; background:var(--panel-2); border:1px solid var(--border);
+  color:var(--text); padding:11px 12px; border-radius:9px; font-size:14px; outline:none;
+}
+.lc-input:focus{ border-color:var(--text-dim); }
+.lc-field-hint{ font-size:11.5px; color:var(--text-faint); margin:6px 0 0; line-height:1.4;}
+
+.lc-btn{
+  width:100%; margin-top:16px; padding:12px; border-radius:9px; border:1px solid var(--border);
+  background:var(--panel-2); color:var(--text); font-size:14.5px; font-weight:600; cursor:pointer;
+}
+.lc-btn-primary{ background:#3ddc97; border-color:#3ddc97; color:#0a1510; }
+.lc-btn-danger{ background:transparent; border-color:#ff6b6b; color:#ff6b6b; }
+.lc-btn-ghost{ background:transparent; }
+.lc-login-status{ text-align:center; font-size:12.5px; color:var(--text-dim); margin-top:12px; min-height:16px;}
+
+.lc-settings-panel{
+  position:fixed; inset:0; z-index:600; display:flex; align-items:center; justify-content:center;
+  background:rgba(0,0,0,.5); padding:20px;
+}
+.lc-settings-panel.hidden{ display:none; }
+.lc-settings-card{
+  width:100%; max-width:360px; background:var(--panel); border:1px solid var(--border);
+  border-radius:14px; padding:22px; box-shadow:0 10px 40px rgba(0,0,0,.35);
+}
+.lc-settings-title{ font-size:17px; font-weight:700; color:var(--text); margin-bottom:6px;}
+.lc-divider{ border:none; border-top:1px solid var(--border-soft); margin:18px 0; }
+
+.lc-persistent-gear{
+  position:fixed; top:14px; right:14px; z-index:520;
+  width:38px; height:38px; border-radius:50%; border:1px solid var(--border);
+  background:var(--panel-2); color:var(--text); font-size:16px; cursor:pointer;
+  display:flex; align-items:center; justify-content:center; box-shadow:0 2px 10px rgba(0,0,0,.3);
+}

@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">LAN Chat</string>
+    <string name="title_activity_main">LAN Chat</string>
+    <string name="package_name">com.hamariduniya.lanchat</string>
+    <string name="custom_url_scheme">com.hamariduniya.lanchat</string>
+</resources>
