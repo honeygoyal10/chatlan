@@ -1,0 +1,61 @@
+name: Build LAN Chat APK
+
+on:
+  push:
+    branches: [ main, master ]
+  workflow_dispatch: {}
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Locate project folder (handles repo root OR apkproject/ subfolder)
+        id: locate
+        run: |
+          if [ -f "package.json" ] && [ -d "android" ]; then
+            echo "dir=." >> "$GITHUB_OUTPUT"
+          elif [ -f "apkproject/package.json" ] && [ -d "apkproject/android" ]; then
+            echo "dir=apkproject" >> "$GITHUB_OUTPUT"
+          else
+            echo "::error::package.json + android/ folder nahi mile — repo structure check karein."
+            exit 1
+          fi
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install npm dependencies
+        working-directory: ${{ steps.locate.outputs.dir }}
+        run: npm install
+
+      - name: Build native JS bridge + sync Capacitor Android project
+        working-directory: ${{ steps.locate.outputs.dir }}
+        run: npm run sync
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Grant execute permission for gradlew
+        working-directory: ${{ steps.locate.outputs.dir }}/android
+        run: chmod +x gradlew
+
+      - name: Build debug APK
+        working-directory: ${{ steps.locate.outputs.dir }}/android
+        run: ./gradlew assembleDebug --stacktrace
+
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: lan-chat-debug-apk
+          path: ${{ steps.locate.outputs.dir }}/android/app/build/outputs/apk/debug/app-debug.apk
